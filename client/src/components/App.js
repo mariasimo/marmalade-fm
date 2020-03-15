@@ -6,35 +6,48 @@ import { Header } from './Header';
 import Home from './Home.js';
 import About from './About';
 import Archives from './Archives';
+import mixesData from '../data/mixes'
 
 class App extends Component {
   constructor(props) {
     super(props)
     this.state= {
       playing: false,
-      currentMix: ''
+      currentMix: '',
+      mixIds : mixesData,
+      mix:null,
+      mixes: []
     }
+  }
+
+
+  fetchMixes = async () => {
+    const {mixIds} = this.state
+    mixIds.map(async (id, i) => {
+      try {
+        console.log(`http://localhost:4000/mixes/?mix=${id}`)
+        const response = await fetch (`http://localhost:4000/mixes/?mix=${id}`)
+        const mixPayload = await response.json()
+        this.setState((prevState, props) => ({
+          mixes: [...prevState.mixes, mixPayload]
+        }))
+      } catch(err){
+        console.log(err)
+      }
+    })
   }
 
   mountAudio = async() => {
     this.widget = Mixcloud.PlayerWidget(this.player);
     await this.widget.ready
-    await this.widget.play()
 
     this.widget.events.pause.on(
-      () => {
-        this.setState({playing: false},
-          () =>  console.log(this.state))
-      }
+      () => {this.setState({playing: false})}
     );
 
     this.widget.events.play.on(
-      () => {
-        this.setState({playing: true},
-          () => console.log(this.state))
-      }
+      () => {this.setState({playing: true})}
     );
-
   }
 
   actions = {
@@ -43,19 +56,21 @@ class App extends Component {
     },
   
     playMix : mixName => {
+      const { currentMix } = this.state;
+      if(mixName === currentMix) return this.widget.togglePlay()
+      
       this.setState({
         currentMix: mixName
       })
       this.widget.load(mixName, true)
       this.mountAudio()
-
     }
   }
   
   componentDidMount() {
     this.mountAudio()
+    this.fetchMixes()
   }
-
 
   render() {
     return (
