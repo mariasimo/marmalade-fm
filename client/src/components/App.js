@@ -20,7 +20,6 @@ class App extends Component {
     }
   }
 
-
   fetchMixes = async () => {
     const {mixIds} = this.state
     mixIds.map(async (id, i) => {
@@ -73,17 +72,18 @@ class App extends Component {
   }
 
   render() {
+    const [firstMix={}] = this.state.mixes
     return (
       <div>
         <div className="flex-l justify-end">
-          <FeaturedMix/>
+          <FeaturedMix {...this.state} {...this.actions} {...firstMix} id={firstMix.key}/>
           <div className="w-50-l relative z-1">
             <Header/>
       
             <Switch>
               <Route exact path="/" render={() => <Home {...this.state} {...this.actions}/>}/>
-              <Route exact path="/archive" component={Archives}/>
-              <Route exact path="/about" component={About}/>
+              <Route exact path="/archive" render={() => <Archives {...this.state} {...this.actions}/>}/>
+              <Route exact path="/about" render={() => <About {...this.state}/>}/>
             </Switch>
           </div>
         </div>
